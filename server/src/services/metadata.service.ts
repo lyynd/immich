@@ -192,6 +192,8 @@ export class MetadataService extends BaseService {
     const { dateTimeOriginal, localDateTime, timeZone, modifyDate } = this.getDates(asset, exifTags);
     const { latitude, longitude, country, state, city } = await this.getGeo(exifTags, reverseGeocoding);
 
+    const { width, height } = this.getImageDimensions(exifTags);
+
     const exifData: Partial<ExifEntity> = {
       assetId: asset.id,
 
@@ -209,8 +211,8 @@ export class MetadataService extends BaseService {
 
       // image/file
       fileSizeInByte: stats.size,
-      exifImageHeight: validate(exifTags.ImageHeight),
-      exifImageWidth: validate(exifTags.ImageWidth),
+      exifImageHeight: validate(height),
+      exifImageWidth: validate(width),
       orientation: validate(exifTags.Orientation)?.toString() ?? null,
       projectionType: exifTags.ProjectionType ? String(exifTags.ProjectionType).toUpperCase() : null,
       bitsPerSample: this.getBitsPerSample(exifTags),
@@ -332,6 +334,29 @@ export class MetadataService extends BaseService {
     }
 
     return JobStatus.SUCCESS;
+  }
+
+  private getImageDimensions(exifTags: ImmichTags): { width: number; height: number } {
+    /*
+     * The "true" values for width and height are a bit hidden, depending on the camera model and file format.
+     * For RAW images in the CR2 or RAF format, the "ImageSize" value seems to be correct,
+     * but ImageWidth and ImageHeight are not correct (they contain the dimensions of the preview image).
+     */
+
+    let width = Number.NaN;
+    let height = Number.NaN;
+    const imageSize = exifTags.ImageSize;
+    if (imageSize && imageSize.indexOf('x') > 0) {
+      // ImageSize is "width x height" (e.g. "100x200")
+      const split = imageSize.split('x');
+      width = Number.parseInt(split[0]);
+      height = Number.parseInt(split[1]);
+    }
+    if (!width || !height) {
+      width = exifTags.ImageWidth ?? Number.NaN;
+      height = exifTags.ImageHeight ?? Number.NaN;
+    }
+    return { width, height };
   }
 
   private async getExifTags(asset: AssetEntity): Promise<ImmichTags> {

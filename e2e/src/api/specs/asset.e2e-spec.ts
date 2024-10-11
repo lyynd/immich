@@ -1148,6 +1148,30 @@ describe('/asset', () => {
           },
         },
       },
+      {
+        input: 'formats/raw/Canon/PowerShot_G12.CR2',
+        expected: {
+          type: AssetTypeEnum.Image,
+          originalFileName: 'PowerShot_G12.CR2',
+          fileCreatedAt: '2015-12-27T09:55:40.000Z',
+          exifInfo: {
+            make: 'Canon',
+            model: 'Canon PowerShot G12',
+            exifImageHeight: 2736,
+            exifImageWidth: 3648,
+            exposureTime: '1/1000',
+            fNumber: 4,
+            focalLength: 18.098,
+            iso: 80,
+            lensModel: null,
+            fileSizeInByte: 11_113_617,
+            dateTimeOriginal: '2015-12-27T09:55:40.000Z',
+            latitude: null,
+            longitude: null,
+            orientation: '1',
+          },
+        },
+      },
     ];
 
     it(`should upload and generate a thumbnail for different file types`, async () => {
